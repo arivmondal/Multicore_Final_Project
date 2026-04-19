@@ -36,6 +36,20 @@ def disk_blur_kernel(size: int, radius: float | None = None) -> np.ndarray:
     return kernel / s
 
 
+def gaussian_kernel(size: int, sigma: float | None = None) -> np.ndarray:
+    _validate_size(size)
+    if sigma is None:
+        sigma = size / 6.0
+    if sigma <= 0:
+        raise ValueError("Sigma must be positive.")
+
+    center = size // 2
+    y, x = np.ogrid[:size, :size]
+    dist2 = (x - center) ** 2 + (y - center) ** 2
+    kernel = np.exp(-dist2 / (2 * sigma ** 2)).astype(np.float32)
+    return kernel / kernel.sum()
+
+
 def diagonal_motion_blur_kernel(size: int, thickness: int = 1) -> np.ndarray:
     _validate_size(size)
     if thickness <= 0:
