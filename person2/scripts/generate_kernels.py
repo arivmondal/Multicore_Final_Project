@@ -18,10 +18,11 @@ def gaussian_kernel(size, sigma):
     return normalized(g @ g.T)
 
 
-def disk_kernel(size):
+def disk_kernel(size, radius=None):
     kernel = np.zeros((size, size), dtype=np.float64)
     center = size // 2
-    cv2.circle(kernel, (center, center), center, 1.0, thickness=-1)
+    actual_radius = radius if radius is not None and radius > 0 else size / 3.0
+    cv2.circle(kernel, (center, center), int(round(actual_radius)), 1.0, thickness=-1)
     return normalized(kernel)
 
 
@@ -36,6 +37,12 @@ def main():
     parser.add_argument("--kernel", required=True, choices=["gaussian", "disk", "motion_diag"])
     parser.add_argument("--size", required=True, type=int)
     parser.add_argument("--sigma", type=float, default=0.0)
+    parser.add_argument(
+        "--radius",
+        type=float,
+        default=0.0,
+        help="Disk radius. If omitted or <= 0, a milder default of size / 3 is used.",
+    )
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
 
@@ -46,7 +53,7 @@ def main():
         sigma = args.sigma if args.sigma > 0 else args.size / 6.0
         kernel = gaussian_kernel(args.size, sigma)
     elif args.kernel == "disk":
-        kernel = disk_kernel(args.size)
+        kernel = disk_kernel(args.size, radius=args.radius)
     else:
         kernel = motion_diag_kernel(args.size)
 
