@@ -42,6 +42,12 @@ def parse_args():
         help="Disk radius. If omitted or <= 0, a milder default of kernel_size / 3 is used.",
     )
     parser.add_argument(
+        "--motion-thickness",
+        type=int,
+        default=1,
+        help="Diagonal motion blur line thickness.",
+    )
+    parser.add_argument(
         "--ranks",
         type=int,
         nargs="+",
@@ -126,14 +132,14 @@ def load_input_image(image_path):
     raise ValueError(f"Unsupported image shape for {image_path}: {image.shape}")
 
 
-def generate_kernel(filter_type, size, sigma, disk_radius):
+def generate_kernel(filter_type, size, sigma, disk_radius, motion_thickness):
     if filter_type == "gaussian":
         actual_sigma = sigma if sigma > 0 else size / 6.0
         return gaussian_kernel(size, actual_sigma)
     if filter_type == "disk":
         actual_radius = disk_radius if disk_radius > 0 else None
         return disk_kernel(size, radius=actual_radius)
-    return motion_diag_kernel(size)
+    return motion_diag_kernel(size, thickness=motion_thickness)
 
 
 def resolve_kernel(args, work_dir):
@@ -147,7 +153,13 @@ def resolve_kernel(args, work_dir):
     if not args.filter_type:
         raise ValueError("Either --kernel-path or --filter-type is required.")
 
-    kernel = generate_kernel(args.filter_type, args.kernel_size, args.sigma, args.disk_radius)
+    kernel = generate_kernel(
+        args.filter_type,
+        args.kernel_size,
+        args.sigma,
+        args.disk_radius,
+        args.motion_thickness,
+    )
     kernel_path = work_dir / f"{args.filter_type}_{args.kernel_size}.csv"
     np.savetxt(kernel_path, kernel, delimiter=",", fmt="%.17g")
     kernel_name = args.kernel_name or args.filter_type

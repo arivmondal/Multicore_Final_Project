@@ -1,0 +1,218 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Low-Rank CUDA Filter Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="{% static 'demoapp/styles.css' %}" rel="stylesheet">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero-panel container-xxl">
+      <div class="row g-4 align-items-end">
+        <div class="col-lg-8">
+          <p class="eyebrow">CUDA Demo App</p>
+          <h1>Interactive Low-Rank Filtering Demo</h1>
+          <p class="hero-copy">
+            Compare the exact full-kernel convolution path against the low-rank CUDA approximation,
+            tune kernel parameters live, and benchmark the speed-quality tradeoff without leaving the page.
+          </p>
+        </div>
+        <div class="col-lg-4">
+          <div class="system-card">
+            <div class="system-title">Runtime Status</div>
+            <div class="system-row"><span>Python</span><strong>{{ system_info.python }}</strong></div>
+            <div class="system-row"><span>Platform</span><strong>{{ system_info.platform }}</strong></div>
+            <div class="system-row"><span>Low-rank binary</span><strong>{{ system_info.low_rank_binary }}</strong></div>
+            <div class="system-row"><span>CuPy CUDA</span><strong>{{ system_info.cupy_cuda_available }}</strong></div>
+            <div class="system-row"><span>Device</span><strong>{{ system_info.cuda_device_name }}</strong></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container-xxl py-4">
+      <div class="row g-4">
+        <div class="col-xl-4">
+          <section class="control-panel">
+            <div class="panel-header">
+              <h2>Controls</h2>
+              <p>Upload, tune, and rerun interactively.</p>
+            </div>
+
+            <div class="sample-grid">
+              {% for image in demo_images %}
+                <button
+                  type="button"
+                  class="sample-card"
+                  onclick="selectSample('{{ image.slug }}')"
+                >
+                  <img src="{% url 'demoapp:sample_preview' image.slug %}" alt="{{ image.label }}">
+                  <span>{{ image.label }}</span>
+                </button>
+              {% endfor %}
+            </div>
+
+            <form
+              id="demo-form"
+              class="demo-form"
+              hx-encoding="multipart/form-data"
+              hx-post="{% url 'demoapp:run_demo' %}"
+              hx-target="#result-panel"
+              hx-indicator="#demo-indicator"
+              hx-trigger="change delay:500ms from:input, change delay:500ms from:select"
+            >
+              {% csrf_token %}
+              <div class="mb-3">
+                <label class="form-label" for="id_input_image">Upload image</label>
+                <input class="form-control" id="id_input_image" name="input_image" type="file" accept="image/*">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label" for="id_sample_image">Or choose a demo image</label>
+                <select class="form-select" id="id_sample_image" name="sample_image">
+                  {% for value, label in form.sample_image.field.choices %}
+                    <option value="{{ value }}" {% if form.sample_image.value == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label" for="id_filter_type">Filter type</label>
+                  <select class="form-select" id="id_filter_type" name="filter_type">
+                    {% for value, label in form.filter_type.field.choices %}
+                      <option value="{{ value }}" {% if form.filter_type.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="id_run_mode">Run mode</label>
+                  <select class="form-select" id="id_run_mode" name="run_mode">
+                    {% for value, label in form.run_mode.field.choices %}
+                      <option value="{{ value }}" {% if form.run_mode.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="id_kernel_size">Kernel size</label>
+                  <input class="form-control" id="id_kernel_size" name="kernel_size" type="number" min="3" step="2" value="{{ form.kernel_size.value|default:31 }}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="id_rank">Approximation rank</label>
+                  <input class="form-control" id="id_rank" name="rank" type="number" min="1" step="1" value="{{ form.rank.value|default:4 }}">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label" for="id_sigma">Gaussian sigma</label>
+                  <input class="form-control" id="id_sigma" name="sigma" type="number" min="0" step="0.1" value="{{ form.sigma.value|default:5.0 }}">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label" for="id_disk_radius">Disk radius</label>
+                  <input class="form-control" id="id_disk_radius" name="disk_radius" type="number" min="0" step="0.5" value="{{ form.disk_radius.value|default:8.0 }}">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label" for="id_motion_thickness">Motion thickness</label>
+                  <input class="form-control" id="id_motion_thickness" name="motion_thickness" type="number" min="1" step="1" value="{{ form.motion_thickness.value|default:1 }}">
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <label class="form-label" for="id_benchmark_ranks">Benchmark ranks</label>
+                <input class="form-control font-monospace" id="id_benchmark_ranks" name="benchmark_ranks" value="{{ form.benchmark_ranks.value|default:'1,2,4,8,16' }}">
+              </div>
+
+              <div class="action-row">
+                <button
+                  class="btn btn-accent"
+                  type="button"
+                  hx-post="{% url 'demoapp:run_demo' %}"
+                  hx-include="#demo-form"
+                  hx-target="#result-panel"
+                  hx-indicator="#demo-indicator"
+                >
+                  Run Demo
+                </button>
+                <button
+                  class="btn btn-outline-light"
+                  type="button"
+                  hx-post="{% url 'demoapp:run_benchmark' %}"
+                  hx-include="#demo-form"
+                  hx-target="#benchmark-panel"
+                  hx-indicator="#demo-indicator"
+                >
+                  Run Rank Sweep
+                </button>
+              </div>
+            </form>
+
+            <div id="demo-indicator" class="loading-indicator htmx-indicator">
+              Processing image and refreshing results...
+            </div>
+          </section>
+        </div>
+
+        <div class="col-xl-8">
+          <section id="result-panel" class="result-shell placeholder-panel">
+            <h2>Interactive Results</h2>
+            <p>Choose an image and parameters, then run the demo to compare exact and low-rank outputs.</p>
+          </section>
+
+          <section id="benchmark-panel" class="result-shell placeholder-panel mt-4">
+            <h2>Benchmark Sweep</h2>
+            <p>Run a rank sweep to generate runtime and quality plots for the current image and kernel.</p>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="media-lightbox" class="media-lightbox" hidden>
+    <button type="button" class="lightbox-close" aria-label="Close enlarged image">×</button>
+    <img id="lightbox-image" src="" alt="Expanded preview">
+  </div>
+
+  <script>
+    function selectSample(slug) {
+      const select = document.getElementById("id_sample_image");
+      select.value = slug;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    (function () {
+      const lightbox = document.getElementById("media-lightbox");
+      const lightboxImage = document.getElementById("lightbox-image");
+      const closeButton = lightbox.querySelector(".lightbox-close");
+
+      function closeLightbox() {
+        lightbox.hidden = true;
+        lightboxImage.src = "";
+      }
+
+      document.addEventListener("click", function (event) {
+        const image = event.target.closest(".enlargeable-media");
+        if (image) {
+          lightboxImage.src = image.getAttribute("src");
+          lightbox.hidden = false;
+          return;
+        }
+
+        if (event.target === lightbox || event.target === closeButton) {
+          closeLightbox();
+        }
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !lightbox.hidden) {
+          closeLightbox();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
