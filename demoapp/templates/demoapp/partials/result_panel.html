@@ -1,0 +1,133 @@
+{% if fatal_error %}
+  <section class="result-shell error-panel">
+    <h2>Interactive Results</h2>
+    <div class="alert alert-danger mb-0">{{ fatal_error }}</div>
+  </section>
+{% elif form.errors %}
+  <section class="result-shell error-panel">
+    <h2>Interactive Results</h2>
+    <div class="alert alert-warning mb-0">
+      {% for field, errors in form.errors.items %}
+        <div><strong>{{ field|title }}:</strong> {{ errors|join:", " }}</div>
+      {% endfor %}
+    </div>
+  </section>
+{% elif result %}
+  <section class="result-shell">
+    <div class="panel-header">
+      <h2>Interactive Results</h2>
+      <p>{{ result.source_label }} · {{ result.parameters.filter_label }} · {{ result.parameters.kernel_size }}x{{ result.parameters.kernel_size }} · rank {{ result.parameters.rank }}</p>
+    </div>
+
+    {% if result.warnings %}
+      <div class="alert alert-warning">
+        {% for warning in result.warnings %}
+          <div>{{ warning }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span>Image Size</span>
+        <strong>{{ result.image_dimensions.width }} × {{ result.image_dimensions.height }}</strong>
+      </div>
+      <div class="metric-card">
+        <span>Channels</span>
+        <strong>{{ result.image_dimensions.channels }}</strong>
+      </div>
+      <div class="metric-card">
+        <span>Baseline Device</span>
+        <strong>{{ result.baseline.device|default:"Not run" }}</strong>
+      </div>
+      <div class="metric-card">
+        <span>Low-Rank Device</span>
+        <strong>{{ result.low_rank.device|default:"Not run" }}</strong>
+      </div>
+      {% if result.baseline.available %}
+        <div class="metric-card">
+          <span>Full Runtime</span>
+          <strong>{{ result.baseline.end_to_end_runtime_ms|floatformat:2 }} ms</strong>
+        </div>
+      {% endif %}
+      {% if result.low_rank.available %}
+        <div class="metric-card">
+          <span>Low-Rank Runtime</span>
+          <strong>{{ result.low_rank.filter_time_ms|floatformat:2 }} ms</strong>
+        </div>
+      {% endif %}
+      {% if result.speedup %}
+        <div class="metric-card accent">
+          <span>Speedup</span>
+          <strong>{{ result.speedup|floatformat:2 }}×</strong>
+        </div>
+      {% endif %}
+      <div class="metric-card">
+        <span>Kernel Frobenius Error</span>
+        <strong>{{ result.kernel_metrics.frobenius_error|floatformat:6 }}</strong>
+      </div>
+      <div class="metric-card">
+        <span>Relative Frobenius Error</span>
+        <strong>{{ result.kernel_metrics.relative_frobenius_error|floatformat:6 }}</strong>
+      </div>
+      <div class="metric-card">
+        <span>Energy Retained</span>
+        <strong>{{ result.kernel_metrics.cumulative_energy_retained|floatformat:4 }}</strong>
+      </div>
+      {% if result.quality_metrics %}
+        <div class="metric-card">
+          <span>MSE</span>
+          <strong>{{ result.quality_metrics.mse|floatformat:8 }}</strong>
+        </div>
+        <div class="metric-card">
+          <span>PSNR</span>
+          <strong>{{ result.quality_metrics.psnr|floatformat:2 }} dB</strong>
+        </div>
+        <div class="metric-card">
+          <span>SSIM</span>
+          <strong>{{ result.quality_metrics.ssim|floatformat:4 }}</strong>
+        </div>
+        <div class="metric-card">
+          <span>Max Abs Diff</span>
+          <strong>{{ result.quality_metrics.max_abs_difference|floatformat:6 }}</strong>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="image-grid">
+      <figure class="image-card">
+        <img class="enlargeable-media" src="{{ result.original_url }}" alt="Original input">
+        <figcaption>Original</figcaption>
+      </figure>
+      {% if result.baseline.available %}
+        <figure class="image-card">
+          <img class="enlargeable-media" src="{{ result.baseline.output_url }}" alt="Full-kernel output">
+          <figcaption>Full 2D Baseline</figcaption>
+        </figure>
+      {% endif %}
+      {% if result.low_rank.available %}
+        <figure class="image-card">
+          <img class="enlargeable-media" src="{{ result.low_rank.output_url }}" alt="Low-rank output">
+          <figcaption>Low-Rank Approximation</figcaption>
+        </figure>
+      {% endif %}
+      {% if result.difference_heatmap_url %}
+        <figure class="image-card">
+          <img class="enlargeable-media" src="{{ result.difference_heatmap_url }}" alt="Difference heatmap">
+          <figcaption>Absolute Difference</figcaption>
+        </figure>
+      {% endif %}
+    </div>
+
+    <div class="plot-grid">
+      <figure class="plot-card">
+        <img class="enlargeable-media" src="{{ result.kernel_plots.singular_values_url }}" alt="Singular values plot">
+        <figcaption>Singular Values</figcaption>
+      </figure>
+      <figure class="plot-card">
+        <img class="enlargeable-media" src="{{ result.kernel_plots.cumulative_energy_url }}" alt="Energy retained plot">
+        <figcaption>Cumulative Energy</figcaption>
+      </figure>
+    </div>
+  </section>
+{% endif %}

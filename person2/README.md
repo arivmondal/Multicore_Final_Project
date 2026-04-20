@@ -12,6 +12,9 @@ The exported terms are:
 
 ## Build
 
+The terminal environment used to compile everything
+```cmd /k """C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvars64.bat"""```
+
 Requires CUDA 10.1, `nvcc`, `g++`, and cuSOLVER.
 
 ```bash

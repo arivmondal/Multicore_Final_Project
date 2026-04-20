@@ -1,0 +1,334 @@
+:root {
+  --bg: #09121d;
+  --panel: rgba(10, 25, 38, 0.84);
+  --panel-strong: #0f2537;
+  --accent: #ff8a3d;
+  --accent-soft: rgba(255, 138, 61, 0.2);
+  --cyan: #3bc9db;
+  --text: #f4f7fb;
+  --muted: #a3b7c8;
+  --border: rgba(255, 255, 255, 0.12);
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(59, 201, 219, 0.28), transparent 32%),
+    radial-gradient(circle at top right, rgba(255, 138, 61, 0.24), transparent 24%),
+    linear-gradient(180deg, #061018 0%, #09121d 50%, #071019 100%);
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.page-shell {
+  min-height: 100vh;
+}
+
+.hero-panel {
+  padding: 2.75rem 1rem 1rem;
+}
+
+.eyebrow {
+  color: var(--cyan);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.hero-panel h1,
+.panel-header h2,
+.placeholder-panel h2 {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.hero-copy {
+  max-width: 52rem;
+  color: var(--muted);
+  font-size: 1.08rem;
+}
+
+.system-card,
+.control-panel,
+.result-shell {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 18px 70px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(16px);
+}
+
+.system-card {
+  padding: 1.1rem 1.2rem;
+}
+
+.system-title {
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.system-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.65rem 0;
+  color: var(--muted);
+}
+
+.system-row:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.system-row strong {
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.control-panel,
+.result-shell {
+  padding: 1.4rem;
+}
+
+.panel-header p,
+.placeholder-panel p,
+.control-panel .panel-header p {
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.sample-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 1.2rem 0 1.4rem;
+}
+
+.sample-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  padding: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.sample-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(59, 201, 219, 0.55);
+  background: rgba(59, 201, 219, 0.08);
+}
+
+.sample-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.sample-card span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.demo-form .form-label {
+  color: var(--muted);
+}
+
+.demo-form .form-control,
+.demo-form .form-select {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #111;
+  border-radius: 14px;
+}
+
+.demo-form .form-control:focus,
+.demo-form .form-select:focus {
+  color: #111;
+  background: #fff;
+  border-color: rgba(255, 138, 61, 0.7);
+  box-shadow: 0 0 0 0.25rem rgba(255, 138, 61, 0.18);
+}
+
+.demo-form .form-select option {
+  color: #111;
+  background: #fff;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 1.3rem;
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%);
+  border: 0;
+  color: #08111c;
+  font-weight: 700;
+}
+
+.btn-accent:hover {
+  color: #08111c;
+  filter: brightness(1.03);
+}
+
+.loading-indicator {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: #ffd5b7;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+}
+
+.placeholder-panel {
+  min-height: 14rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.9rem;
+  margin: 1.2rem 0;
+}
+
+
+.metric-card {
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.metric-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.84rem;
+  margin-bottom: 0.4rem;
+}
+
+.metric-card strong {
+  font-size: 1.05rem;
+}
+
+.metric-card.accent {
+  background: rgba(255, 138, 61, 0.12);
+  border-color: rgba(255, 138, 61, 0.35);
+}
+
+.image-grid,
+.plot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+}
+
+.image-card,
+.plot-card {
+  margin: 0;
+  padding: 0.65rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.image-card img,
+.plot-card img {
+  width: 100%;
+  border-radius: 14px;
+  display: block;
+}
+
+.enlargeable-media {
+  cursor: zoom-in;
+}
+
+.image-card figcaption,
+.plot-card figcaption {
+  color: var(--muted);
+  margin-top: 0.55rem;
+  font-size: 0.9rem;
+}
+
+.summary-strip {
+  margin: 1rem 0 1.2rem;
+  padding: 0.85rem 1rem;
+  border-radius: 16px;
+  background: rgba(59, 201, 219, 0.12);
+  color: #d8fbff;
+}
+
+.table-toolbar {
+  margin: 1rem 0 0.75rem;
+}
+
+.benchmark-table {
+  --bs-table-bg: transparent;
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.03);
+  --bs-table-color: var(--text);
+  --bs-table-striped-color: var(--text);
+  --bs-table-border-color: rgba(255, 255, 255, 0.08);
+}
+
+.error-panel .alert {
+  border-radius: 16px;
+}
+
+.media-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1055;
+  background: rgba(4, 10, 18, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.media-lightbox[hidden] {
+  display: none;
+}
+
+.media-lightbox img {
+  max-width: min(92vw, 1400px);
+  max-height: 88vh;
+  border-radius: 18px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.25rem;
+  width: 3rem;
+  height: 3rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+@media (max-width: 991.98px) {
+  .hero-panel {
+    padding-top: 1.6rem;
+  }
+}

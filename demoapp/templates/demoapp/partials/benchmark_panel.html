@@ -1,0 +1,109 @@
+{% if fatal_error %}
+  <section class="result-shell error-panel">
+    <h2>Benchmark Sweep</h2>
+    <div class="alert alert-danger mb-0">{{ fatal_error }}</div>
+  </section>
+{% elif form.errors %}
+  <section class="result-shell error-panel">
+    <h2>Benchmark Sweep</h2>
+    <div class="alert alert-warning mb-0">
+      Fix the form errors in the control panel before running a benchmark.
+    </div>
+  </section>
+{% elif benchmark %}
+  <section class="result-shell">
+    <div class="panel-header">
+      <h2>Benchmark Sweep</h2>
+      <p>{{ benchmark.source_label }} · {{ benchmark.parameters.filter_label }} · ranks {{ benchmark.parameters.ranks|join:", " }}</p>
+    </div>
+
+    {% if benchmark.warnings %}
+      <div class="alert alert-warning">
+        {% for warning in benchmark.warnings %}
+          <div>{{ warning }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span>Baseline Runtime</span>
+        <strong>{{ benchmark.baseline.end_to_end_runtime_ms|floatformat:2 }} ms</strong>
+      </div>
+      <div class="metric-card">
+        <span>Baseline Device</span>
+        <strong>{{ benchmark.baseline.device }}</strong>
+      </div>
+      <div class="metric-card accent">
+        <span>Ranks Tested</span>
+        <strong>{{ benchmark.row_count }}</strong>
+      </div>
+      {% if benchmark.best_tradeoff %}
+        <div class="metric-card accent">
+          <span>Best Tradeoff</span>
+          <strong>Rank {{ benchmark.best_tradeoff.rank }}</strong>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if benchmark.best_tradeoff %}
+      <div class="summary-strip">
+        Rank {{ benchmark.best_tradeoff.rank }} currently gives
+        {{ benchmark.best_tradeoff.speedup|floatformat:2 }}× speedup with
+        SSIM {{ benchmark.best_tradeoff.ssim|floatformat:4 }} and
+        PSNR {{ benchmark.best_tradeoff.psnr|floatformat:2 }} dB.
+      </div>
+    {% endif %}
+
+    <div class="plot-grid">
+      <figure class="plot-card">
+        <img class="enlargeable-media" src="{{ benchmark.plots.runtime_vs_rank_url }}" alt="Runtime vs rank plot">
+        <figcaption>Runtime vs Rank</figcaption>
+      </figure>
+      <figure class="plot-card">
+        <img class="enlargeable-media" src="{{ benchmark.plots.quality_vs_rank_url }}" alt="Quality vs rank plot">
+        <figcaption>Quality vs Rank</figcaption>
+      </figure>
+      <figure class="plot-card">
+        <img class="enlargeable-media" src="{{ benchmark.plots.singular_values_url }}" alt="Singular values plot">
+        <figcaption>Singular Values</figcaption>
+      </figure>
+      <figure class="plot-card">
+        <img class="enlargeable-media" src="{{ benchmark.plots.cumulative_energy_url }}" alt="Cumulative energy plot">
+        <figcaption>Cumulative Energy</figcaption>
+      </figure>
+    </div>
+
+    <div class="table-toolbar">
+      <a class="btn btn-outline-light btn-sm" href="{{ benchmark.csv_url }}" target="_blank" rel="noopener">Download CSV</a>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-dark table-striped align-middle benchmark-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Low-Rank Runtime (ms)</th>
+            <th>Speedup</th>
+            <th>PSNR</th>
+            <th>SSIM</th>
+            <th>Relative Fro Error</th>
+            <th>Energy Retained</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in benchmark.rows %}
+            <tr {% if benchmark.best_tradeoff and row.rank == benchmark.best_tradeoff.rank %}class="table-success"{% endif %}>
+              <td>{{ row.rank }}</td>
+              <td>{{ row.low_rank_runtime_ms|floatformat:2 }}</td>
+              <td>{{ row.speedup|floatformat:2 }}×</td>
+              <td>{{ row.psnr|floatformat:2 }}</td>
+              <td>{{ row.ssim|floatformat:4 }}</td>
+              <td>{{ row.relative_frobenius_error|floatformat:6 }}</td>
+              <td>{{ row.cumulative_energy_retained|floatformat:4 }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endif %}
